@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Vesala</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style type="text/css">
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+        }
+        
+        h1 {
+            font-size: 36px;
+        }
+        
+        p {
+            font-size: 20px;
+        }
+        
+        td {
+            border-bottom: solid 5px black;
+            font-size: 48px;
+            width: 50px;
+        }
+        
+        #omotac {
+            display: flex;
+            flex-direction: column;
+            padding: 2px;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            background-image: url('vesala.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position-y: center;
+        }
+        
+        #tabela {
+            height: 60px;
+            border-spacing: 20px;
+        }
+        
+        #preostaliPokusaji {
+            height: 60px;
+            width: 60px;
+            color: red;
+            font-size: 48px;
+        }
+        
+        #upotrebljenaSlova {
+            height: 40px;
+            font-size: 24px;
+        }
+        
+        #slovo,
+        #konacno {
+            font-size: 24px;
+        }
+        
+        #dugme,
+        #dugme1 {
+            font-size: 16px;
+            padding: 7px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="omotac">
+
+        <h1>VEŠALA</h1>
+        <div>
+            <table id="tabela">
+                <tr id="red"></tr>
+            </table>
+        </div>
+        <p>PREOSTALI POKUŠAJI:</p>
+        <div id="preostaliPokusaji">
+
+        </div>
+        <p style="color: white">UPOTREBLJENA SLOVA:</p>
+        <div id="upotrebljenaSlova">
+
+        </div>
+        <p>UNESITE SLOVO:</p>
+        <div id="trenutnoSlovo">
+            <input type="text" id="slovo" autofocus>
+            <button type="button" onclick="proveriSlovo()" id="dugme">Proveri</button>
+        </div>
+        <p>OVDE UPIŠITE POKUŠAJ ZA KONAČNO REŠENJE
+        <br>(ako pogrešite, nemate više pokušaja)</>
+        <div id="konacanPokusaj">
+            <input type="text" id="konacno" autofocus>
+            <button type="button" onclick="proveriKonacno()" id="dugme1">Proveri</button>
+        </div>
+
+    </div>
+    <script>
+        var zadataRec = prompt('Unesite zagonetnu reč');
+        zadataRec = zadataRec.toUpperCase();
+        var omotacTabele = document.getElementById('omotacTabele');
+        var tr = document.getElementById('red');
+        var preostaliPokusaji = document.getElementById('preostaliPokusaji');
+        var nizUpotrebljenihSlova = [];
+
+        zadataRec = zadataRec.split('');
+
+        if (zadataRec.length < 9 && zadataRec.length > 0) {
+            preostaliPokusaji.innerHTML = 6;
+        } else {
+            preostaliPokusaji.innerHTML = 9;
+        }
+        //U odnosu na broj slova u zadatoj reci , upisuje toliko celija
+        for (var i = 0; i < zadataRec.length; i++) {
+            var td = document.createElement('td');
+            td.setAttribute('id', ('celija' + i));
+            tr.appendChild(td);
+        }
+        //Inicijalizacija brojaca nepogodjenih slova
+        var j = zadataRec.length;
+
+        //poziv funkcije provere i upisa slova
+        function proveriSlovo() {
+            var slovo = document.getElementById('slovo');
+            slovo = slovo.value;
+            slovo = slovo.toUpperCase();
+            pogodak = nizUpotrebljenihSlova.map(function(element) {
+                if (element == slovo) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+
+            const sumaPogodak = pogodak.reduce(function(akumulator, element) {
+                if (element == 1) {
+                    return akumulator + element;
+                } else {
+                    return akumulator;
+                }
+            }, 0);
+
+            //proverava da li je unet broj ili vise od jednog karaktera    
+            if (slovo.length != 1 || !isNaN(slovo) || (/[^A-Za-zČčĆćŠšĐĐŽž]+$/.test(slovo)) || (sumaPogodak != 0)) {
+                alert('Pogrešan unos. Pokušajte ponovo');
+                var slovo = document.getElementById('slovo').value = '';
+            } else {
+                var z = 0;
+
+                //ako je pogodjeno slovo upisati ga
+                for (var i = 0; i < zadataRec.length; i++) {
+                    if (zadataRec[i] == slovo) {
+                        alert('Pogođeno je slovo ' + slovo);
+                        var celijaPogodjena = document.getElementById('celija' + i);
+                        celijaPogodjena.innerHTML = slovo;
+                        j--;
+
+                        //Uslov kada je igra resena
+                        if (j == 0) {
+                            alert('Čestitamo! Pogodili ste zagonetnu reč');
+                            document.getElementById('dugme').style.visibility = 'hidden';
+                            document.getElementById('dugme1').style.visibility = 'hidden';
+                        }
+                    } else {
+                        z++;
+                    }
+                }
+                //upisuje slovo u niz upisanih slova
+                nizUpotrebljenihSlova.push(slovo);
+                document.getElementById('upotrebljenaSlova').innerHTML += slovo + ', ';
+
+                //brisanje unete vrednosti
+                document.getElementById('slovo').value = '';
+            }
+
+            //smanjuje broj pokusaja za 1;
+            if (z == zadataRec.length) {
+                alert('Zagonetna reč ne sadrži predloženo slovo.\nImate jedan pokušaj manje');
+                preostaliPokusaji.innerHTML--;
+
+                //Kada je igra gotova iskljucujemo dugme    
+                if (preostaliPokusaji.innerHTML == 0) {
+                    document.getElementById('dugme').style.visibility = 'hidden';
+                    document.getElementById('dugme1').style.visibility = 'hidden';
+                    alert('Igra je gotova. Nemate više pokušaja');
+                }
+            }
+            console.log('Kraj petlje');
+        }
+
+        function proveriKonacno() {
+            var konacno = document.getElementById('konacno');
+            konacno = konacno.value;
+            konacno = konacno.toUpperCase();
+            zadataRec = zadataRec.join('');
+            if (zadataRec == konacno) {
+                alert('Čestitamo! Pogodili ste zagonetnu reč');
+                document.getElementById('dugme').style.visibility = 'hidden';
+                document.getElementById('dugme1').style.visibility = 'hidden';
+            } else {
+                document.getElementById('dugme').style.visibility = 'hidden';
+                document.getElementById('dugme1').style.visibility = 'hidden';
+                alert('Ovo nije zagonetna reč.\nIgra je gotova. Nemate više pokušaja');
+            }
+        }
+    </script>
+
+</body>
+
+</html>
